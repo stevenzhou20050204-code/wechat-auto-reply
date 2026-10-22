@@ -1,0 +1,42 @@
+name: Windows bootstrap
+on:
+  push:
+    branches: [main]
+    paths: ['wechat-lulu/**', '.github/workflows/windows-bootstrap.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-regression:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Isolated installer and pause safeguards
+        shell: pwsh
+        env:
+          LULU_TEST_WORK: ${{ runner.temp }}/lulu-tests
+        run: python -X utf8 -B wechat-lulu/tests/test_bootstrap.py
+  fresh-environment:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build a clean private runtime
+        shell: pwsh
+        run: >
+          python -X utf8 -B wechat-lulu/scripts/bootstrap.py install
+          --root "${{ runner.temp }}/WechatLulu"
+          --prepare-only
+      - name: Verify environment without model or UI
+        shell: pwsh
+        run: |
+          & "${{ runner.temp }}/WechatLulu/project/.venv/Scripts/python.exe" -m pip check
+          & "${{ runner.temp }}/WechatLulu/tools/node/node.exe" --version
+          python -X utf8 -B wechat-lulu/scripts/bootstrap.py doctor --root "${{ runner.temp }}/WechatLulu"

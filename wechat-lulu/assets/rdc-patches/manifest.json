@@ -1,0 +1,20 @@
+{
+  "package": "@wonderwhy-er/desktop-commander",
+  "version": "0.2.51",
+  "license": "MIT",
+  "source": "https://github.com/wonderwhy-er/DesktopCommanderMCP",
+  "files": [
+    {
+      "path": "device.js",
+      "sha256": "c25e2bffcf5344615f36b6461e4d8a43522b0f94faef8dc15623d4995ba6c17f"
+    },
+    {
+      "path": "device-authenticator.js",
+      "sha256": "22ceb118a3d9178145088899d64e6c4e2231c9b33decdf48ac29d3e73686a4a5"
+    },
+    {
+      "path": "session-recovery.js",
+      "sha256": "1cb028b5e144b57307a2c0132078b446e1a3fd433fb5e6cce9cf4a3d997b62a6"
+    }
+  ]
+}

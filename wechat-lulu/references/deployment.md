@@ -1,35 +1,54 @@
-# 打包与迁移
+# 新电脑自动部署
 
-本 skill 安装在 Codex skills 目录，含指令、离线管理工具和白名单业务源码快照。常驻监听仍由原来的 Python 程序与 Windows 任务运行。skill 不会自动增加模型调用；短入口和按需参考可减少重复长提示词，但真实自动回复仍产生正常模型开销。
+这是安装型 skill。通常只需在新电脑安装此 skill 后说“用微信鹭鹭配置这台电脑并启动”，Codex 应直接运行 scripts/bootstrap.ps1 并完成环境工作，而不是交给用户一串安装步骤。
 
-## 包内内容
+## 自动完成的工作
 
-- assets/runtime/project：监听、策略、队列、媒体、发送与底层库源码。
-- assets/runtime/engine：原生 CLI 定位依赖、守护、控制及健康检查源码。
-- assets/runtime/rdc：连接与星环守护的自有代码；外部 RDC 安装及其 Node 依赖未内嵌。
-- runtime-manifest.json：逐文件大小与 SHA-256。
-- assets/config.template.json：禁用的配置模板，没有联系人/账号绑定。
-- assets/local-profile.json：待配置的示例路径与任务名称，不是登录凭证。
+1. 检测 Windows x64、已有部署和目录归属；已有其他目录监听时保留并报告。
+2. 自动定位或安装 Python 3.12，创建独立虚拟环境，安装项目、OCR和媒体依赖并执行 pip check。
+3. 下载 Node 22 LTS 官方分发包并核对 SHASUMS256；定位本机原生 Codex，必要时通过官方 npm 包安装，自动适配 app-server 的 proxy/stdio 启动方式。
+4. 安装 @wonderwhy-er/desktop-commander 0.2.51，核对并应用已验证的静默续期/认证拒绝隔离补丁；不迁移旧设备凭证。
+5. 检测微信和星环；缺少微信时用 Windows Package Manager（缺失时按微软官方方式自动恢复），缺少星环时使用受信清单中的指定安装器。检查 Authenticode 签名，不关闭证书验证。
+6. 使用实际安装目录、当前 Windows 用户和独立任务名称生成 profile；自动识别星环所拥有的本地 HTTP/SOCKS 端口。
+7. 注册五项当前用户任务：登录接续、监听守护、RDC守护、08:00–22:00小时健康、全天小时星环守护。使用 Interactive/Limited 与 pythonw，不要求 SYSTEM，不创建前台终端。
+8. 打开微信和星环供本人登录；识别本机实际账号并原子写入配置。登录后自动接续，初始监听不回填历史。微信账号变更不覆盖原绑定。
+9. RDC 首次打开官方设备授权流程，完成后自动保存于 RDC 的标准用户目录并由后台守护复用。已有会话不强制重登；待定工具不重放；后续 daemon 保持 DC_NONINTERACTIVE=1。
 
-不包含聊天数据库/聊天导出、通讯录缓存、活动/pending 个人配置、账本、水位、预约、日志、生成图片、模型会话、API 密钥、DPAPI 密文、密码、Python 环境、外部 Node 包及历史一次性恢复/实发验收脚本。上传版已经移除私人默认绑定，仍需审查并配置路径与规则，不能宣称完全通用或一键迁移。
+星环可信源由用户提供：
+https://dla.fastlyss.com/xinghuan/xinghuan_82001_x64_6.0.5.exe
+签名必须匹配 SSS VPN Technical Co., Ltd。安装器哈希（如清单已填）和签名同时检查；不从同名搜索结果随便换产品。
 
-## 离线校验
+## 命令与状态
 
-    python scripts/lulu_skill.py verify
-    python scripts/lulu_skill.py validate-config --config assets/config.template.json
+    powershell.exe -NoProfile -File scripts/bootstrap.ps1
+    powershell.exe -NoProfile -File scripts/bootstrap.ps1 -InstallRoot C:/WechatLulu
+    python scripts/bootstrap.py doctor
+    python scripts/bootstrap.py resume
 
-verify 校验清单、路径和源码语法，不执行生产模块、PowerShell 控制器、网络、UI 或模型。status 只读文件，不证明实时进程、RPC 或发送结果。
+默认安装在 %LOCALAPPDATA%/WechatLulu。无需手工修改源码中的盘符或任务名。doctor 只读文件；resume 是主人要求继续配置时的接续，不清人工 STOP。
 
-## 新目录暂存
+- environment_ready：依赖准备完成，PrepareOnly 模式未装应用或创建任务。
+- waiting_for_login / waiting_for_wechat_login / waiting_for_star_login：等待本人登录。
+- waiting_for_star_connection：正确账号已核对，等待现有严格网络守护连接。
+- codex_authorization_required：未发现本机可复用的 Codex 登录；skill 需走官方登录，不能伪造会话。
+- starting：组件正在启动，不能说成功。
+- ready：监听状态新鲜、RDC joined 且75秒内服务器 pong；RPC 仍需实际远程工具验证。
+- paused / needs_attention：保留原状态，按具体来源处理。
 
-    python scripts/lulu_skill.py stage --destination C:/new-empty-folder
+## 幂等与恢复
 
-目标必须是新的或空目录，不能为 profile 中的生产路径及其父/子目录。只复制 project、engine、rdc 和禁用示例；不安装、不创建任务、不认证、不启动。失败保留现场，不自动递归清理。生产原目录和原服务不动。
+重复执行不清账本、队列、水位、指纹、预约、草稿或凭证；已有禁用配置和新人工暂停不被解除。任务重名但身份不同会停止，不接管他人任务。安装目录须属于本安装器，不覆盖已有普通文件夹，不接受目录联接或符号链接。
 
-新机器需 Windows、兼容微信 4.x、本人微信登录、Python/依赖、原生 Codex CLI 及所需外部工具。Python 依赖以 project/pyproject.toml 与 requirements-lulu-ocr.txt 为准。路径与机器专用健康检查中的账号规则须审查重绑，已有接收者授权不能自动移植给另一个账号。
+联网或包安装失败会保存步骤状态；下次直接接续，不重新创建账号或重置凭证。日志仅保存在本机安装目录；GitHub 发布只包含源代码与模板。
 
-先保持 enabled=false，绑定实际 account_username、路径、标签和固定账号例外，再完成需要的本人授权。凭证由正常登录/原组件安全保存，不能打包或从日志恢复。不为安装创建测试来信、生成图或发送微信。
+安装完成并不意味着第三方身份验证可省略。微信、星环由本人登录；如果 RDC 要求首次设备确认、Codex 没有已有登录，或系统要求本人授权，skill 自动准备并引导确认后继续，不能保证绕过这些服务的验证。
 
-迁移旧实例的指纹/账本/预约/水位需要单独受控迁移；本分发包刻意不带这些私密状态。原实例不得清空或与新实例并行发送；不能以“新安装”为由补发历史。部署成功、实时 RPC 与发送验收须各自核对，不把离线打包通过说成在线验证通过。
+## 验证边界与来源
 
-assets/heartbeat-prompt.txt 可在主人要求精简监控时用于替换重复长说明；打包本身不修改现有 automation。
+离线验证与CI验证不调用模型、不生图、不发送微信。没有真实全新电脑的登录与 RPC 证据时，不声称已在新电脑端到端验收。
+
+- Codex 安装与本机运行：https://learn.chatgpt.com/docs/codex/cli
+- Codex 登录状态：https://learn.chatgpt.com/docs/auth
+- RDC 设备授权与会话保存：https://github.com/wonderwhy-er/DesktopCommanderMCP/blob/main/src/remote-device/README.md
+
+- Windows Package Manager 自动恢复：https://learn.microsoft.com/en-us/windows/package-manager/winget/troubleshooting

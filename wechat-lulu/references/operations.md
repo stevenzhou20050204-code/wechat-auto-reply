@@ -24,7 +24,7 @@ WechatAutoReplyControl.ps1 的 Status 可只读；Start 会归档 STOP、启用�
 
 RDC 只用已有登录，DC_NONINTERACTIVE=1；不打开浏览器或新设备认证，不清凭证。只有新代码明确 owner-required 的认证拒绝或设备撤销才通知主人授权。已知有活动工具或待定 call_id 时不重启。临时会话恢复耗尽、确认无活动工具且至少 180 秒未连通后，才按已部署策略静默重启。代理等待只唤醒现有网络守护，不重复启动星环。
 
-星环独立任务现为全天每小时整点，policyVersion=2、intervalSeconds=3600，不能改回每分钟。单轮连续三次失败才恢复，严格匹配 D:/xinghuan/xinghuan.exe；人工暂停、锁屏、认证/订阅/验证码/设备确认均停止。后台 OCR/窗口消息不移动鼠标或抢焦点；正常网络不操作应用。
+星环独立任务现为全天每小时整点，policyVersion=2、intervalSeconds=3600，不能改回每分钟。单轮连续三次失败才恢复，严格匹配 profile.xinghuan_exe 的实际路径并核验签名；人工暂停、锁屏、认证/订阅/验证码/设备确认均停止。后台 OCR/窗口消息不移动鼠标或抢焦点；正常网络不操作应用。
 
 账号只从星环自己的“您的账号”栏核验，目标从现有受信策略读取。账号匹配不退出、不读密码；明确不符且原生密码控件和唯一按钮明确，才按原有授权组件单次切换。凭证仅当前 Windows 用户 DPAPI 密文，禁止读取输出或写入提示词/日志。账号/控件不清楚停止。login_submitted/login_unconfirmed/authentication_rejected 保留预约，不盲目重试。
 
