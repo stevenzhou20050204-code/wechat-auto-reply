@@ -1,0 +1,1 @@
+使用 $wechat-lulu，按 assets/local-profile.json 与 references/operations.md 完成本计划小时后台检查，先读部署状态、lulu-health、listener-status 并持久化去重。继承最新可信配置及人工 STOP/UI-PAUSE/STAR-WATCH-STOP；保留指纹、账本、水位和未知预约。不切窗、不启动回复模型、不生图、不发测试。只读新鲜本机生图/星环结果；RDC 专用 ping 一次，running 持 call_id 查询，未得实际 pong 保持待定或未验证。网络与账号状态分开。仅新故障、修复完成、重要消息或需本人处理时通知，按已有 ID/时间/签名去重；无变化安静。时段为上海 08:00–22:00。

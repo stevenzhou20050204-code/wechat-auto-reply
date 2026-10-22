@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "enabled": false,
+  "account_username": "",
+  "scope": "all_private_contacts",
+  "assistant_name": "鹭鹭",
+  "reply_model": "gpt-6.1-sol",
+  "reasoning_effort": "medium",
+  "replace_unsent_drafts": true,
+  "reply_order": "global_fifo",
+  "max_concurrent_replies": 1,
+  "interaction_mode": "desktop_ui",
+  "contact_exclusions": {
+    "labels": [],
+    "nicknames": [],
+    "contact_ids": []
+  },
+  "content_policy": {
+    "sensitive_politics": "silent"
+  },
+  "pending_reply_policy": "latest_new_message",
+  "contact_reply_styles": {},
+  "contact_reply_modes": {}
+}
