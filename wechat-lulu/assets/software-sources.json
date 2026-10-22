@@ -29,6 +29,7 @@
     "version": "6.0.5",
     "signer": "SSS VPN Technical Co., Ltd",
     "installer_type": "inno",
-    "filename": "xinghuan-6.0.5-x64.exe"
+    "filename": "xinghuan-6.0.5-x64.exe",
+    "sha256": "2544f2e292ba7c94ee66f6a4c915c32f5cbd94d194c8952d5e08bd89498b0647"
   }
 }

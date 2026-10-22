@@ -157,6 +157,15 @@ def authorize_rdc_once(p):
             cwd=root,env=env,stdout=out,stderr=err,creationflags=getattr(subprocess,"CREATE_NO_WINDOW",0))
     finally:out.close();err.close()
     atomic(marker,{"status":"owner_authorization_pending","pid":child.pid,"startedAt":time.time()})
+def owner_authorization_required(health,now=None):
+    if health.get("authenticationStatus")!="owner-required":return False
+    now=time.time() if now is None else now
+    value=health.get("updatedAt")
+    if isinstance(value,str):
+        try:value=datetime.datetime.fromisoformat(value.replace("Z","+00:00")).timestamp()
+        except ValueError:return False
+    return isinstance(value,(int,float)) and 0<=now-value<=45
+
 def server_pong_fresh(health,now=None):
     now=time.time() if now is None else now
     def stamp(value):
@@ -203,6 +212,8 @@ def reconcile(profile_path):
     session=Path.home()/".desktop-commander-device/device.json"
     if not session.exists():authorize_rdc_once(p)
     task_action(p,"rdc")
+    if owner_authorization_required(load(Path(p["rdc_root"])/"connection-health.json",{})):
+        return write_setup(p,"rdc_authorization_required",rpcVerified=False)
     account=detect_account(p)
     if account is None:return write_setup(p,"waiting_for_wechat_login",rdcAuthorizationPending=not session.exists())
     bind_config(p,account)
@@ -250,6 +261,7 @@ def main():
             if paused(p) or load(Path(p["project_root"])/"wechat_autoreply.json",{}).get("enabled") is not True:return
             command=["powershell.exe","-NoProfile","-NonInteractive","-File",str(Path(p["engine_root"])/"WechatAutoReplySupervise.ps1")]
         elif args.service=="rdc":
+            if paused(p):return
             if not (Path.home()/".desktop-commander-device/device.json").exists():return
             command=["powershell.exe","-NoProfile","-NonInteractive","-File",str(Path(p["rdc_root"])/"Supervise.ps1")]
         elif args.service=="network":

@@ -16,7 +16,7 @@
 
 星环可信源由用户提供：
 https://dla.fastlyss.com/xinghuan/xinghuan_82001_x64_6.0.5.exe
-签名必须匹配 SSS VPN Technical Co., Ltd。安装器哈希（如清单已填）和签名同时检查；不从同名搜索结果随便换产品。
+签名必须匹配 SSS VPN Technical Co., Ltd。已完整下载核对发布者签名，并将 SHA256 固定在清单；安装时哈希和签名同时检查；不从同名搜索结果随便换产品。
 
 ## 命令与状态
 
@@ -31,6 +31,7 @@ https://dla.fastlyss.com/xinghuan/xinghuan_82001_x64_6.0.5.exe
 - waiting_for_login / waiting_for_wechat_login / waiting_for_star_login：等待本人登录。
 - waiting_for_star_connection：正确账号已核对，等待现有严格网络守护连接。
 - codex_authorization_required：未发现本机可复用的 Codex 登录；skill 需走官方登录，不能伪造会话。
+- rdc_authorization_required：只有新鲜状态明确报告 owner-required 才要求本人授权；超时或临时恢复失败不作此判断。
 - starting：组件正在启动，不能说成功。
 - ready：监听状态新鲜、RDC joined 且75秒内服务器 pong；RPC 仍需实际远程工具验证。
 - paused / needs_attention：保留原状态，按具体来源处理。

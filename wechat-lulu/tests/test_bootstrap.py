@@ -97,6 +97,13 @@ class BootstrapTests(unittest.TestCase):
         self.assertEqual(result["status"],"paused")
         self.assertEqual((state/"STOP").read_text(),"new-human-stop")
 
+    def test_only_fresh_explicit_authentication_rejection_requires_owner(self):
+        self.assertTrue(s.owner_authorization_required({"updatedAt":995.,"authenticationStatus":"owner-required"},1000.))
+        self.assertFalse(s.owner_authorization_required({"updatedAt":900.,"authenticationStatus":"owner-required"},1000.))
+        self.assertFalse(s.owner_authorization_required({"updatedAt":1001.,"authenticationStatus":"owner-required"},1000.))
+        self.assertFalse(s.owner_authorization_required({"updatedAt":999.,"authenticationStatus":"restore-unavailable","lastError":"timeout"},1000.))
+        self.assertFalse(s.owner_authorization_required({"authenticationStatus":"owner-required"},1000.))
+
     def test_pong_requires_fresh_snapshot(self):
         now=1000.
         self.assertTrue(s.server_pong_fresh({"updatedAt":995.,"lastPongAgeMs":5000},now))
